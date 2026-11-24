@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wankhede Seat Explorer — find your seat, compare prices</title>
+<meta name="description" content="Explore Wankhede Stadium in 3D: find your seat, see the view from it and compare ticket prices across every stand. Unofficial fan-made.">
+<meta name="theme-color" content="#0B0B0C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script type="importmap">
+{ "imports": { "three": "./node_modules/three/build/three.module.js", "three/addons/": "./node_modules/three/examples/jsm/" } }
+</script>
+</head>
+<body data-mode="aerial">
+<canvas id="scene" aria-label="3D model of Wankhede Stadium" tabindex="0"></canvas>
+
+<header id="masthead">
+  <h1 class="wordmark">Wankhede</h1>
+  <nav id="crumb" aria-label="View"><button type="button" data-crumb="aerial">Overview</button></nav>
+</header>
+
+<section id="search" aria-label="Find my seat">
+  <form id="search-form" role="search" autocomplete="off">
+    <label for="search-input" class="sr">Find my seat</label>
+    <input id="search-input" type="text" placeholder="Find your seat" spellcheck="false">
+    <button type="button" id="search-more" class="btn" aria-expanded="false" aria-controls="search-selects">Pick</button>
+    <button type="submit" class="btn primary">Find</button>
+  </form>
+  <div id="search-selects" hidden>
+    <label>Stand<select id="sel-stand"></select></label>
+    <label>Level<select id="sel-level" disabled></select></label>
+    <label>Block<select id="sel-block" disabled></select></label>
+    <label>Row<select id="sel-row" disabled></select></label>
+    <label>Seat<select id="sel-seat" disabled></select></label>
+    <button type="button" id="pick-go" class="btn primary">Go</button>
+  </div>
+</section>
+
+<aside id="price-panel" aria-label="Prices around the ground">
+  <div class="panel-head">
+    <div><h2>Prices</h2><p><span id="match-count"></span> · 33,108 seats</p></div>
+    <button type="button" id="panel-close" class="x" aria-label="Close prices">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div id="panel-body">
+    <div class="controls">
+      <div class="budget">
+        <div class="readout"><span>Budget</span><output id="budget-out"></output></div>
+        <div class="dual">
+          <input id="price-min" type="range" aria-label="Minimum price" min="1000" max="21000" step="50" value="1000">
+          <input id="price-max" type="range" aria-label="Maximum price" min="1000" max="21000" step="50" value="21000">
+        </div>
+      </div>
+      <div class="row" role="group" aria-label="Level">
+        <button type="button" class="chip" data-level="1" aria-pressed="false">L1</button>
+        <button type="button" class="chip" data-level="2" aria-pressed="false">L2</button>
+        <button type="button" class="chip" data-level="3" aria-pressed="false">L3</button>
+        <button type="button" class="chip" data-level="4" aria-pressed="false">L4</button>
+      </div>
+      <div class="row between">
+        <label class="check"><input type="checkbox" id="f-avail"> Available only</label>
+        <label class="sort">Sort <select id="f-sort"><option value="price-asc">Cheapest</option><option value="price-desc">Priciest</option><option value="bearing" selected>Around the ground</option></select></label>
+        <button type="button" id="f-reset" class="btn link">Reset</button>
+      </div>
+    </div>
+    <div id="block-list" class="list"></div>
+  </div>
+</aside>
+
+<article id="ticket" role="dialog" aria-label="Seat ticket" hidden></article>
+
+<div id="tooltip" aria-hidden="true" hidden></div>
+
+<div id="seat-hud" hidden>
+  <button type="button" id="hud-exit" class="btn primary">Exit seat view (Esc)</button>
+  <p id="hud-text">Drag to look around</p>
+</div>
+
+<div id="legend">
+  <ul>
+    <li><i class="sw avail"></i>Free</li>
+    <li><i class="sw sold"></i>Sold</li>
+    <li><i class="sw mine"></i>Your seat</li>
+  </ul>
+  <div id="heat-ramp" hidden><span>Cheaper</span><i class="ramp"></i><span>Pricier</span></div>
+</div>
+
+<nav id="dock" aria-label="Navigate">
+  <button type="button" id="dk-overview" class="dk">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="6.5"/><ellipse cx="12" cy="12" rx="4.5" ry="2.8"/></svg><span>Overview</span></button>
+  <button type="button" id="dk-find" class="dk">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg><span>Find seat</span></button>
+  <button type="button" id="dk-prices" class="dk" aria-pressed="false" aria-controls="price-panel">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5V5h7.5l8.5 8.5-7.5 7.5z"/><circle cx="8.5" cy="9" r="1.2"/></svg><span>Prices</span></button>
+  <button type="button" id="dk-heat" class="dk" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></svg><span>Heatmap</span></button>
+  <button type="button" id="dk-seat" class="dk" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v8h10V4M5 12h14v4H5zM7 16v4M17 16v4"/></svg><span>My seat</span></button>
+</nav>
+
+<p id="fine">Unofficial fan-made seat explorer. Prices indicative, based on IPL 2025 listings.</p>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="loading" role="status"><span>Raising the floodlights…</span></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
