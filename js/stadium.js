@@ -275,7 +275,7 @@ function makeTunnel() {
     if (!lit) { q.fillStyle = '#0d0f14'; q.fillRect(0, H * 0.72, W, H * 0.28); q.fillStyle = 'rgba(255,255,255,.07)'; for (let i = 0; i <= 4; i++) q.fillRect((i * W) / 4, 0, 2, H * 0.72); q.fillStyle = 'rgba(255,255,255,.13)'; q.font = '600 46px Inter, Arial, sans-serif'; q.textAlign = 'center'; q.fillText('WANKHEDE', W / 2, H * 0.5); }
     q.fillStyle = lit ? '#cfe0ff' : '#3a4152'; q.fillRect(0, H * 0.24, W, 5); q.fillRect(0, H * 0.72 - 3, W, 3);
   };
-  const wallMap = rep(canvasTex(512, 256, wallDraw(false)), L / 6, 1), wallEm = rep(canvasTex(512, 256, wallDraw(true), false), L / 6, 1);
+  const wallMap = rep(canvasTex(512, 256, wallDraw(false)), -L / 6, 1) /* BackSide faces mirror u; flip so the lettering reads correctly */, wallEm = rep(canvasTex(512, 256, wallDraw(true), false), L / 6, 1);
   const ceilDraw = (lit) => (q, W, H) => { q.fillStyle = lit ? '#000' : '#1a1d22'; q.fillRect(0, 0, W, H); q.fillStyle = lit ? '#fff' : '#d8d8d8'; q.fillRect(W * 0.3, H * 0.42, W * 0.4, H * 0.16); if (!lit) { q.fillStyle = 'rgba(0,0,0,.4)'; q.fillRect(0, 0, W, 3); } };
   const ceilMap = rep(canvasTex(128, 128, ceilDraw(false)), 1, L / 3), ceilEm = rep(canvasTex(128, 128, ceilDraw(true), false), 1, L / 3);
   const floorMap = rep(canvasTex(128, 256, (q, W, H) => { q.fillStyle = '#1d4a30'; q.fillRect(0, 0, W, H); q.fillStyle = '#163a26'; q.fillRect(0, 0, W * 0.12, H); q.fillRect(W * 0.88, 0, W * 0.12, H); q.fillStyle = 'rgba(255,255,255,.55)'; q.fillRect(W * 0.12, 0, 3, H); q.fillRect(W * 0.88 - 3, 0, 3, H); }), 1, L / 4);
