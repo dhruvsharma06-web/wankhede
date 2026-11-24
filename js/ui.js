@@ -331,7 +331,9 @@ export function createUI({ data, stadium }) {
 
   /* ---------- loading ---------- */
   let loaded = false;
-  function firstFrame() { if (loaded) return; loaded = true; el.loading.classList.add('done'); setTimeout(() => el.body.classList.add('chrome'), 600); setTimeout(() => (el.loading.hidden = true), 600); }
+  function firstFrame() { if (loaded) return; loaded = true; el.loading.classList.add('done'); setTimeout(() => (el.loading.hidden = true), 600); }
+  const showChrome = () => el.body.classList.add('chrome'); // controls appear once the walkout shot lands in the overview
+  stadium.on('introEnd', showChrome); setTimeout(showChrome, 16000);
   requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(firstFrame, 400)));
 
   applyFilters(); updateDeltas(); renderCrumb();
